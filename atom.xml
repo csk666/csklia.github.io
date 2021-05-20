@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>RW</title>
+  
+  
+  <link href="https://csklzj.github,io/atom.xml" rel="self"/>
+  
+  <link href="https://csklzj.github,io/"/>
+  <updated>2021-05-20T08:15:30.348Z</updated>
+  <id>https://csklzj.github,io/</id>
+  
+  <author>
+    <name>R</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>意图和广播</title>
+    <link href="https://csklzj.github,io/2021/05/20/%E6%84%8F%E5%9B%BE%E5%92%8C%E5%B9%BF%E6%92%AD/"/>
+    <id>https://csklzj.github,io/2021/05/20/%E6%84%8F%E5%9B%BE%E5%92%8C%E5%B9%BF%E6%92%AD/</id>
+    <published>2021-05-20T04:18:21.853Z</published>
+    <updated>2021-05-20T08:15:30.348Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h1&gt;&lt;p&gt;Intent(意图) 是一个消息传递对象，您可以使用它从其他应用组件请求操作。尽管 Intent 可以通过多种方式促进组件之间的通信，但其基本用例主要包括以下三个：&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="AutoJs" scheme="https://csklzj.github,io/categories/AutoJs/"/>
+    
+    <category term="intent" scheme="https://csklzj.github,io/categories/AutoJs/intent/"/>
+    
+    
+    <category term="intent" scheme="https://csklzj.github,io/tags/intent/"/>
+    
+    <category term="broadcast" scheme="https://csklzj.github,io/tags/broadcast/"/>
+    
+  </entry>
+  
+</feed>

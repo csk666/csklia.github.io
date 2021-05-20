@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"csklzj.github","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言Intent(意图) 是一个消息传递对象，您可以使用它从其他应用组件请求操作。尽管 Intent 可以通过多种方式促进组件之间的通信，但其基本用例主要包括以下三个：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="意图和广播">
+<meta property="og:url" content="https://csklzj.github,io/2021/05/20/%E6%84%8F%E5%9B%BE%E5%92%8C%E5%B9%BF%E6%92%AD/index.html">
+<meta property="og:site_name" content="RW">
+<meta property="og:description" content="前言Intent(意图) 是一个消息传递对象，您可以使用它从其他应用组件请求操作。尽管 Intent 可以通过多种方式促进组件之间的通信，但其基本用例主要包括以下三个：">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/csklzj/image_host/raw/master/image/5ed4bb092d83675ce716f2c8758503bf.png">
+<meta property="og:image" content="https://gitee.com/csklzj/image_host/raw/master/image/65b2181cbedb7cf6f6f1ac520e3cefd3.jpg">
+<meta property="article:published_time" content="2021-05-20T04:18:21.853Z">
+<meta property="article:modified_time" content="2021-05-20T08:15:30.348Z">
+<meta property="article:author" content="R">
+<meta property="article:tag" content="intent">
+<meta property="article:tag" content="broadcast">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/csklzj/image_host/raw/master/image/5ed4bb092d83675ce716f2c8758503bf.png">
+
+<link rel="canonical" href="https://csklzj.github,io/2021/05/20/%E6%84%8F%E5%9B%BE%E5%92%8C%E5%B9%BF%E6%92%AD/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>意图和广播 | RW</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="RW" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">RW</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://csklzj.github,io/2021/05/20/%E6%84%8F%E5%9B%BE%E5%92%8C%E5%B9%BF%E6%92%AD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="R">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RW">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          意图和广播
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-05-20 12:18:21 / 修改时间：16:15:30" itemprop="dateCreated datePublished" datetime="2021-05-20T12:18:21+08:00">2021-05-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AutoJs/" itemprop="url" rel="index"><span itemprop="name">AutoJs</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/AutoJs/intent/" itemprop="url" rel="index"><span itemprop="name">intent</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>Intent(意图) 是一个消息传递对象，您可以使用它从其他应用组件请求操作。尽管 Intent 可以通过多种方式促进组件之间的通信，但其基本用例主要包括以下三个：</p>
+<span id="more"></span>
+
+<ul>
+<li>启动活动(Activity)： Activity 表示应用中的一个”屏幕”。例如应用主入口都是一个Activity，应用的功能通常也以Activity的形式独立，例如微信的主界面、朋友圈、聊天窗口都是不同的Activity。通过将 Intent 传递给 startActivity()，您可以启动新的 Activity 实例。Intent 描述了要启动的 Activity，并携带了任何必要的数据。</li>
+<li>启动服务(Service)： Service 是一个不使用用户界面而在后台执行操作的组件。通过将 Intent 传递给 startService()，您可以启动服务执行一次性操作（例如，下载文件）。Intent 描述了要启动的服务，并携带了任何必要的数据。</li>
+<li>传递广播： 广播是任何应用均可接收的消息。系统将针对系统事件（例如：系统启动或设备开始充电时）传递各种广播。通过将 Intent 传递给 sendBroadcast()、sendOrderedBroadcast() 或 sendStickyBroadcast()，您可以将广播传递给其他应用。</li>
+</ul>
+<h1 id="app-intent-options"><a href="#app-intent-options" class="headerlink" title="app.intent(options)"></a>app.intent(options)</h1><ul>
+<li>options {Object} 选项，包括：</li>
+</ul>
+<ol>
+<li>action {string} 意图的Action，指意图要完成的动作，是一个字符串常量，比如”android.intent.action.SEND”。当action以”android.intent.action”开头时，可以省略前缀，直接用”SEND”代替。参见Actions。</li>
+<li>type {string} 意图的MimeType，表示和该意图直接相关的数据的类型，表示比如”text/plain”为纯文本类型。</li>
+<li>data {string} 意图的Data，表示和该意图直接相关的数据，是一个Uri, 可以是文件路径或者Url等。例如要打开一个文件, action为”android.intent.action.VIEW”, data为”file:///sdcard/1.txt”。</li>
+<li>category {Array} 意图的类别。比较少用。参见Categories。</li>
+<li>packageName {string} 目标包名</li>
+<li>className {string} 目标Activity或Service等组件的名称</li>
+<li>extras {Object} 以键值对构成的这个Intent的Extras(额外信息)。提供该意图的其他信息，例如发送邮件时的邮件标题、邮件正文。参见Extras。</li>
+<li>flags {Array} intent的标识，字符串数组，例如[“activity_new_task”, “grant_read_uri_permission”]。参见Flags。[v4.1.0新增]</li>
+<li>root {Boolea} 是否以root权限启动、发送该intent。使用该参数后，不能使用context.startActivity()等方法，而应该直接使用诸如app.startActivity({…})的方法。[v4.1.0新增]</li>
+</ol>
+<h1 id="Acitivity-活动"><a href="#Acitivity-活动" class="headerlink" title="Acitivity(活动)"></a>Acitivity(活动)</h1><h2 id="Activity软件抓"><a href="#Activity软件抓" class="headerlink" title="Activity软件抓"></a>Activity软件抓</h2><p>此方法比较简单，安装 <a target="_blank" rel="noopener" href="https://www.coolapk.com/apk/l.Activity">Activity</a> 软件，授予剪贴板权限、无障碍权限（如有root，直接一键激活）等权限，然后正常运行到要提取的界面，观察活动名，正确的话点一下悬浮窗提取所需要的的<code>包名/活动名</code> 到剪贴板。然后用以下命令拼接可得到所需命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">am start -n 包名/活动名</span><br></pre></td></tr></table></figure>
+
+<p>注意：</p>
+<ol>
+<li>如果提取到的含有特殊符号（比如$）,把<code>包名/活动名</code>用英文的引号引起来，单、双引号都可，我称之为<code>引号原则</code>。</li>
+<li>如果<code>活动名</code>中含有<code>包名</code>，可删去<code>活动名</code>中的<code>包名</code>（强迫症福音）。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">am start -n &#x27;包名/活动名&#x27;</span><br><span class="line">am start -n &quot;包名/活动名&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="xposed-edge-pro抓"><a href="#xposed-edge-pro抓" class="headerlink" title="xposed edge pro抓"></a>xposed edge pro抓</h2><p>这个比较简单，思路就是利用xposed edge pro的<code>应用菜单</code>抓取，再处理其数据就得到命令</p>
+<ol>
+<li>设置好edge手势（别的也可）触发<code>应用菜单</code></li>
+<li>到要抓的界面调出<code>应用菜单</code>-<code>活动</code>-<code>提取活动</code></li>
+<li>以文本方式打开<code>/data/user_de/0/com.jozein.xedgepro/prefs/collection</code>找到最后一行</li>
+<li>以空格为界，最后一项为操作的值</li>
+<li>如果该值符合<code>包名/活动名</code>的特点，就按 <code>am start -n 包名/活动名</code>处理即可，</li>
+</ol>
+<h1 id="Intent-意图"><a href="#Intent-意图" class="headerlink" title="Intent(意图)"></a>Intent(意图)</h1><p>以 #intent 开头,  以 ;end 结尾,</p>
+<h2 id="xposed-edge-pro抓-1"><a href="#xposed-edge-pro抓-1" class="headerlink" title="xposed edge pro抓"></a>xposed edge pro抓</h2><p>这个比较简单，思路就是利用xposed edge pro的<code>应用菜单</code>抓取，再处理其数据就得到命令</p>
+<ol>
+<li>设置好edge手势（别的也可）触发<code>应用菜单</code></li>
+<li>到要抓的界面调出<code>应用菜单</code>-<code>活动</code>-<code>带参数提取活动</code></li>
+<li>以文本方式打开<code>/data/user_de/0/com.jozein.xedgepro/prefs/collection</code>找到最后一行</li>
+<li>以空格为界，最后一项为操作的值</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">am start &#x27;intent:值&#x27;</span><br><span class="line">am start &quot;intent:值&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="桌面图标抓取"><a href="#桌面图标抓取" class="headerlink" title="桌面图标抓取"></a>桌面图标抓取</h2><p>对于这种方法，要想尽办法把软件的某个功能发送到桌面，如果能发送到桌面就可以试试这种方法。</p>
+<h3 id="手动改"><a href="#手动改" class="headerlink" title="手动改"></a>手动改</h3><p>安卓7以上，桌面的short会存放到文件里，通过里面的信息来做成intent值<br>方法：<br>准备软件：MT文件（其他也行）<br>⑴ 将 微信小程序-最近文档随身 添加到桌面并返回桌面确定该小程序图标存在<br>⑵ 用MT打开 /data/data/ch.deletescape.lawnchair.plah/databases/shortcuts.xml ，点右上角三个点搜索 最近文档随身 复制出如下红框内代码至空白文档<br>⑶ 按照我下图的修改方法得到intent值</p>
+<p><img src="https://gitee.com/csklzj/image_host/raw/master/image/5ed4bb092d83675ce716f2c8758503bf.png"></p>
+<p>⑷ 根据模板 am start “intent:intent值” 拼接命令</p>
+<p><img src="https://gitee.com/csklzj/image_host/raw/master/image/65b2181cbedb7cf6f6f1ac520e3cefd3.jpg"></p>
+<h3 id="脚本执行"><a href="#脚本执行" class="headerlink" title="脚本执行"></a>脚本执行</h3><blockquote>
+<ol>
+<li>下载依心所言的脚本：<a target="_blank" rel="noopener" href="https://cloud.189.cn/t/f2m2aee6jQVr">提取Shortcut与桌面启动器(引号可选版)7.3.sh</a></li>
+<li>点击编辑，第13行nn中0改999可以得到双开应用桌面的intent，第16行ee可以改变执行结果的位置</li>
+<li>发送快捷方式到桌面</li>
+<li>运行脚本（可使用MT管理器、FV悬浮球、常规脚本），勾选Root，点击执行</li>
+<li>查找<code>/storage/emulated/0/000/提取intent</code>下<code>shortcuts.sh</code>文件，点编辑，点右上角三个点搜索 最近文档随身</li>
+</ol>
+</blockquote>
+<h2 id="xp模块抓取"><a href="#xp模块抓取" class="headerlink" title="xp模块抓取"></a>xp模块抓取</h2><blockquote>
+<p>安卓7以下<a target="_blank" rel="noopener" href="https://csklzj.lanzoui.com/iaZ3monxfid">intent记录模块</a></p>
+<p>安卓7以上 <a target="_blank" rel="noopener" href="https://csklzj.lanzoui.com/iblz3onxfni">intent拦截这模块</a></p>
+<p>将Tasker的任务文件<a target="_blank" rel="noopener" href="https://cloud.189.cn/t/rMVJfe6vaEvq">intent值转shell命令.tsk.xml</a>导入到Tasker里，</p>
+<p>然后将将第三方软件抓取到的一堆值替换到第一步里的 发往，再运行就好了。</p>
+</blockquote>
+<h1 id="URL-scheme"><a href="#URL-scheme" class="headerlink" title="URL scheme"></a>URL scheme</h1><blockquote>
+<p>如果满足以下任意要求能打开软件内某界面，它就有对应的URL Scheme<br>⑴ 小程序跳转<br>⑵ 通知栏跳转<br>⑶ 网页跳转<br>⑷ 识别剪贴板跳转</p>
+</blockquote>
+<blockquote>
+<p>URL Schema协议格式：<br>xl://goods:8888/goodsDetail?goodsId=10011002<br>通过上面的路径 Schema、Host、port、path、query全部包含，基本上平时使用路径就是这样子的。<br>?xl代表该Schema 协议名称<br>?goods代表Schema作用于哪个地址域<br>?goodsDetail代表Schema指定的页面<br>?goodsId代表传递的参数<br>?8888代表该路径的端口号</p>
+</blockquote>
+<blockquote>
+<p>举例子：<br>支付宝的扫一扫<br>alipays://platformapi/startapp?appId=10000007<br>酷安打开指定用户<br>coolmarket://u/1057386<br>酷安打开指定帖子<br>coolmarket://feed/16306963</p>
+</blockquote>
+<p>这个命令的模板有两个</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 打开 URL scheme 命令 短版</span><br><span class="line">am start -d &#x27;URL Scheme&#x27;</span><br><span class="line">am start -d &quot;URL Scheme&quot;</span><br><span class="line"># 打开 URL scheme 命令 长版</span><br><span class="line">am start -a android.intent.action.VIEW -d &#x27;URL Scheme&#x27;</span><br><span class="line">am start -a android.intent.action.VIEW -d &quot;URL Scheme&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="查-ios捷径社区或者百度"><a href="#查-ios捷径社区或者百度" class="headerlink" title="查-ios捷径社区或者百度"></a>查-ios捷径社区或者百度</h2><p><a target="_blank" rel="noopener" href="https://sharecuts.cn/apps">ios捷径社区</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/50713009">随便找</a></p>
+<h2 id="网页中找"><a href="#网页中找" class="headerlink" title="网页中找"></a>网页中找</h2><h3 id="找可以打开软件的网址"><a href="#找可以打开软件的网址" class="headerlink" title="找可以打开软件的网址"></a>找可以打开软件的网址</h3><p><a target="_blank" rel="noopener" href="https://www.coolapk.com/apk/mixiaba.com.Browser">米侠浏览器</a></p>
+<p>以qq音乐为例，</p>
+<p>复制分享链接在米侠浏览器打开，能出现请求打开qq音乐弹窗后</p>
+<p>点最上角三个点–》网络日志–》找不是以https或者http开头的链接</p>
+<h3 id="网址源码中查找"><a href="#网址源码中查找" class="headerlink" title="网址源码中查找"></a>网址源码中查找</h3><p>当上一步抓到了链接，但是不支持是，需要在源码中查找</p>
+<p>先反编译安装包，在xml里搜索<code>schem</code>, 一般是第一个即为协议头</p>
+<p>在源码中搜索 协议头:// 比如酷安 <code>coolmarket:\\</code></p>
+<p>如果源码中找不到就去 网页<code>js</code>中查找</p>
+<h2 id="利用-【Anywhere-快捷方式】"><a href="#利用-【Anywhere-快捷方式】" class="headerlink" title="利用 【Anywhere- 快捷方式】"></a>利用 【Anywhere- 快捷方式】</h2><h1 id="服务"><a href="#服务" class="headerlink" title="服务"></a>服务</h1><p>利用软件 My Android Tools</p>
+<p>点击侧边栏应用程序，搜索应用，点击查看所有组件信息–》服务</p>
+<p>等待服务启动，看哪个服务由黑变蓝</p>
+<p>点击右上角三角放大，复制</p>
+<blockquote>
+<p>am start-foreground-service 包名/服务名<br>am stop-service<br>am force-stop 包名</p>
+</blockquote>
+<h1 id="广播"><a href="#广播" class="headerlink" title="广播"></a>广播</h1><h2 id="Auto-js"><a href="#Auto-js" class="headerlink" title="Auto.js"></a>Auto.js</h2><h3 id="发广播"><a href="#发广播" class="headerlink" title="发广播"></a>发广播</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">// send-broadcast.js</span><br><span class="line"></span><br><span class="line">app.sendBroadcast(&#123;</span><br><span class="line">  action: &#x27;autojs.intent.action.MAIN&#x27;,</span><br><span class="line">  extras: &#123;</span><br><span class="line">    from: &#x27;Autojs&#x27;,</span><br><span class="line">    version: &#x27;3.1.0 Beta&#x27;,</span><br><span class="line">    info: &#x27;You got me :)&#x27;,</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* 发广播：</span><br><span class="line">* 1. action 的内容可以自定义，只要与 Tasker 接收意图中所写的 action 一致，Tasker 便可接收到该意图</span><br><span class="line">* 2. extras 是以键值对构成的对象，键值对亦可自定义</span><br><span class="line">*/</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="收广播"><a href="#收广播" class="headerlink" title="收广播"></a>收广播</h3><p>js文件如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">* 假设接收到的广播 Intent 内容如下：</span><br><span class="line">*</span><br><span class="line">* action: com.autojs.intent.INTENT_RECEIVED_DEMO</span><br><span class="line">* data: package:net.dinglisch.android.taskerm</span><br><span class="line">* package: org.autojs.autojs</span><br><span class="line">* extras:</span><br><span class="line">*   from:Tasker</span><br><span class="line">*   message:Hello Autojs</span><br><span class="line">*</span><br><span class="line">* 说明：以上 intent 并非真实的格式，仅是为了令读者知道该 intent 有哪些值</span><br><span class="line">*/</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line">* 由广播 Intent 触发的脚本都可通过以下方法获取到该广播的 Intent 对象</span><br><span class="line">* 需注意，该对象为 Android 的 Intent 对象，需调用 Android 的 Intent 方法</span><br><span class="line">*/</span><br><span class="line">const intent = engines.myEngine().execArgv.intent;</span><br><span class="line"></span><br><span class="line">const action = intent.action; // 读取 action；同 intent.getAction()</span><br><span class="line">const data = intent.data; // 读取 data，返回 Java Uri 对象；同 intent.getData()</span><br><span class="line">const package = intent.package; // 读取 package；同 intent.getPackage()</span><br><span class="line">const from = intent.getStringExtra(&#x27;from&#x27;); // 读取 extras 中的 from 值</span><br><span class="line">const message = intent.getStringExtra(&#x27;message&#x27;); // 读取 extras 中的 message 值</span><br><span class="line"></span><br><span class="line">console.log(action); // &quot;com.autojs.intent.USER_DEFINED&quot;</span><br><span class="line">console.log(data); // &quot;package:net.dinglisch.android.taskerm&quot;</span><br><span class="line">console.log(package); // &quot;org.autojs.autojs&quot;</span><br><span class="line">console.log(from); // &quot;Tasker&quot;</span><br><span class="line">console.log(message); // &quot;Hello Autojs&quot;</span><br><span class="line"></span><br><span class="line">// 遍历所有 extras 值（上面为单个 extra 的读取）</span><br><span class="line">let o = &#123;&#125;;</span><br><span class="line">const extras = intent.extras;</span><br><span class="line">if(extras) &#123;</span><br><span class="line">  let iter = extras.keySet().iterator();</span><br><span class="line">  while(iter.hasNext()) &#123;</span><br><span class="line">    let key = iter.next();</span><br><span class="line">    o[key] = extras.get(key);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">console.log(JSON.stringify(o)); // &#123;&quot;from&quot;:&quot;Tasker&quot;,&quot;message&quot;:&quot;Hello Autojs&quot;&#125;</span><br><span class="line"></span><br><span class="line">// 其他实现代码</span><br><span class="line">// ...</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>三个点–》更多–》定时执行–》广播触发</p>
+<h2 id="Tasker"><a href="#Tasker" class="headerlink" title="Tasker"></a>Tasker</h2><h3 id="发广播-1"><a href="#发广播-1" class="headerlink" title="发广播"></a>发广播</h3><h3 id="收广播-1"><a href="#收广播-1" class="headerlink" title="收广播"></a>收广播</h3><h2 id="Fv悬浮球"><a href="#Fv悬浮球" class="headerlink" title="Fv悬浮球"></a>Fv悬浮球</h2><h3 id="发广播-2"><a href="#发广播-2" class="headerlink" title="发广播"></a>发广播</h3><h3 id="收广播-2"><a href="#收广播-2" class="headerlink" title="收广播"></a>收广播</h3><h2 id="Xposed-edge-pro"><a href="#Xposed-edge-pro" class="headerlink" title="Xposed edge pro"></a>Xposed edge pro</h2><h3 id="发广播-3"><a href="#发广播-3" class="headerlink" title="发广播"></a>发广播</h3><blockquote>
+<p>格式：<br>am broadcast -n “包名/广播接收Receiver” -a 广播名 –ei 参数Key 参数Value –ei 参数Key 参数Value</p>
+</blockquote>
+<p><code>adb shell am broadcast -a com.android.test --es test_string &quot;this is test string&quot; --ei test_int 100 --ez test_boolean true</code></p>
+<p>说明：–es 表示使用字符串类型参数  –ei 表示int类型参数  –ez 表示boolean类型参数</p>
+<p><code>adb shell am broadcast -n &quot;com.autonavi.amapauto/com.autonavi.amapauto.adapter.internal.AmapAutoBroadcastReceiver&quot; -a AUTONAVI_STANDARD_BROADCAST_RECV --ei &quot;KEY_TYPE&quot; 10047 --ei &quot;EXTRA_CASUAL_MUTE&quot; 1</code></p>
+<p>同源码的效果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">private void setNaviCasualMute(int mute) &#123;</span><br><span class="line">    Intent intent = new Intent();</span><br><span class="line">    intent.setClassName(&quot;com.autonavi.amapauto&quot;, &quot;com.autonavi.amapauto.adapter.internal.AmapAutoBroadcastReceiver&quot;);</span><br><span class="line">    intent.setAction(&quot;AUTONAVI_STANDARD_BROADCAST_RECV&quot;);</span><br><span class="line">    intent.putExtra(&quot;KEY_TYPE&quot;, 10047);</span><br><span class="line">    intent.putExtra(&quot;EXTRA_CASUAL_MUTE&quot;, mute);</span><br><span class="line">    mContext.sendBroadcastAsUser(intent, UserHandle.SYSTEM);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="URL-Scheme-整理"><a href="#URL-Scheme-整理" class="headerlink" title="URL Scheme 整理"></a>URL Scheme 整理</h1><h2 id="搜索类"><a href="#搜索类" class="headerlink" title="搜索类"></a>搜索类</h2><h3 id="淘宝"><a href="#淘宝" class="headerlink" title="淘宝"></a>淘宝</h3><p>搜索指定物品</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tbopen://s.taobao.com?q=[prompt:商品名称]</span><br></pre></td></tr></table></figure>
+
+<p>使用天猫搜索</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tbopen://list.tmall.com/search_product.htm?q=[prompt:商品名称]</span><br></pre></td></tr></table></figure>
+
+<p>搜索指定店铺</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tbopen://shopsearch.taobao.com/search?app=shopsearch&amp;q=[prompt:店铺名称]</span><br></pre></td></tr></table></figure>
+
+<p>跳转指定淘宝店铺</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tbopen://shop.m.taobao.com/shop/shop_index.htm?shopId=[prompt:店铺 ID]</span><br></pre></td></tr></table></figure>
+
+<h3 id="豆瓣"><a href="#豆瓣" class="headerlink" title="豆瓣"></a>豆瓣</h3><p>搜索内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">douban:///search?q=[prompt:搜索内容]</span><br></pre></td></tr></table></figure>
+
+<h3 id="美团"><a href="#美团" class="headerlink" title="美团"></a>美团</h3><p>全局搜索</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">imeituan://www.meituan.com/search?q=[prompt:商品名称]</span><br></pre></td></tr></table></figure>
+
+<p>酒店搜索</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">imeituan://www.meituan.com/hotel/search?q=[prompt:酒店名称]</span><br></pre></td></tr></table></figure>
+
+<h3 id="大众点评"><a href="#大众点评" class="headerlink" title="大众点评"></a>大众点评</h3><p>搜索商品</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dianping://searchshoplist?keyword=[prompt:商品名称]</span><br></pre></td></tr></table></figure>
+
+<h3 id="什么值得买"><a href="#什么值得买" class="headerlink" title="什么值得买"></a>什么值得买</h3><p>搜索商品</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">smzdm://search?json=&#123;&#123;&#123;&quot;channelName&quot;:&quot;home&quot;,&quot;search_type&quot;:&quot;1&quot;,&quot;keyWord&quot;:&quot;[prompt:商品名称]&quot;&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="知乎"><a href="#知乎" class="headerlink" title="知乎"></a>知乎</h3><p>搜索问题</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zhihu://search?q=[prompt]</span><br></pre></td></tr></table></figure>
+
+<h3 id="哔哩哔哩"><a href="#哔哩哔哩" class="headerlink" title="哔哩哔哩"></a>哔哩哔哩</h3><p>搜索视频</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bilibili://search?keyword=[prompt]</span><br></pre></td></tr></table></figure>
+
+<h3 id="YouTube"><a href="#YouTube" class="headerlink" title="YouTube"></a>YouTube</h3><p>搜索视频，此处的 URL 在 Universal Link 的作用下会直接跳转 YouTube 客户端，如果没有安装客户端则直接打开网页搜索。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://m.youtube.com/results?q=[prompt]</span><br></pre></td></tr></table></figure>
+
+<h3 id="App-Store"><a href="#App-Store" class="headerlink" title="App Store"></a>App Store</h3><p>搜索软件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">itms-apps://search.itunes.apple.com/WebObjects/MZSearch.woa/wa/search?media=software&amp;term=[prompt]</span><br></pre></td></tr></table></figure>
+
+<h3 id="新浪微博"><a href="#新浪微博" class="headerlink" title="新浪微博"></a>新浪微博</h3><p>微博搜索</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sinaweibo://searchall?q=[prompt]</span><br></pre></td></tr></table></figure>
+
+<h3 id="京东"><a href="#京东" class="headerlink" title="京东"></a>京东</h3><p>搜索商品</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openapp.jdmobile://virtual?params=&#123;&#123;&#123;&quot;des&quot;:&quot;productList&quot;,&quot;keyWord&quot;:&quot;[prompt:商品名称]&quot;,&quot;from&quot;:&quot;search&quot;,&quot;category&quot;:&quot;jump&quot;&#125;&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="拼多多"><a href="#拼多多" class="headerlink" title="拼多多"></a>拼多多</h3><p>搜索商品</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pinduoduo://com.xunmeng.pinduoduo/search_result.html?search_key=[prompt:商品名称]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="扫码类"><a href="#扫码类" class="headerlink" title="扫码类"></a>扫码类</h2><h3 id="微信"><a href="#微信" class="headerlink" title="微信"></a>微信</h3><p>扫一扫</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">weixin://scanqrcode</span><br></pre></td></tr></table></figure>
+
+<h3 id="支付宝"><a href="#支付宝" class="headerlink" title="支付宝"></a>支付宝</h3><p>付款码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alipayqr://platformapi/startapp?appId=20000056</span><br></pre></td></tr></table></figure>
+
+<p>扫一扫</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alipayqr://platformapi/startapp?appId=10000007</span><br></pre></td></tr></table></figure>
+
+<p>乘车码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alipayqr://platformapi/startapp?appId=200011235</span><br></pre></td></tr></table></figure>
+
+<p>其他支付宝相关的小程序跳转的 URL Scheme 请参照<a target="_blank" rel="noopener" href="https://sspai.com/post/66334">《URL Scheme 查询指南》</a>支付宝段落自行查询，此处不再一一列举。</p>
+<h3 id="美团-1"><a href="#美团-1" class="headerlink" title="美团"></a>美团</h3><p>普通扫码页面</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">imeituan://www.meituan.com/scanQRCode</span><br></pre></td></tr></table></figure>
+
+<p>共享单车扫码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">imeituan://www.meituan.com/bike/scan?lc-callback=imeituan://www.meituan.com/bike/inscan</span><br></pre></td></tr></table></figure>
+
+<p>该 URL Scheme 有且仅有配合 Launch Center Pro 的 <code>lc-callback</code> 协议方能正常使用</p>
+<h3 id="菜鸟"><a href="#菜鸟" class="headerlink" title="菜鸟"></a>菜鸟</h3><p>打开身份码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cainiao://desktop/station_code</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="参数类"><a href="#参数类" class="headerlink" title="参数类"></a>参数类</h3><h4 id="设置"><a href="#设置" class="headerlink" title="设置"></a>设置</h4><p>捷径屏幕使用时间通知</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">prefs:root=SCREEN_TIME&amp;path=SCREEN_TIME_SUMMARY#DAY/com.apple.shortcuts</span><br><span class="line"></span><br><span class="line">prefs:root=SCREEN_TIME&amp;path=SCREEN_TIME_SUMMARY#WEEK/com.apple.shortcuts</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="其他协议头"><a href="#其他协议头" class="headerlink" title="其他协议头"></a>其他协议头</h2><p>微信 wechat://﻿</p>
+<p>QQ mqq://﻿</p>
+<p>微博 weibo://</p>
+<p>墨客 com.moke.moke://</p>
+<p>今日头条 snssdk141://﻿</p>
+<p>知乎 zhihu://</p>
+<p>淘宝 taobao://﻿</p>
+<p>京东 openapp.jdmobile://﻿</p>
+<p>米家 mihome://</p>
+<p>WPS KingsoftOfficeApp://</p>
+<p>滴滴出行 diditaxi://</p>
+<p>58同城 wbmain://</p>
+<p>掌阅iReader iReader://</p>
+<p>格志 griddiary://</p>
+<p>搜狗输入法 com.sogou.sogouinput://</p>
+<p>1Password onepassword://</p>
+<p>Price Tag</p>
+<p>打开 pricetag://</p>
+<p>发现 pricetag://explore</p>
+<p>收藏 pricetag://favorites</p>
+<p>降价 pricetag://pricedrop</p>
+<p><strong>银行类</strong></p>
+<p>浦发银行 wx1cb534bb13ba3dbd://</p>
+<p>招商银行 cmbmobilebank://</p>
+<p>建设银行 wx2654d9155d70a468://</p>
+<p>工商银行 com.icbc.iphoneclient://</p>
+<p>百度应用</p>
+<p>百度文库hd bdwenku://</p>
+<p>百度云盘 baiduyun://</p>
+<p>百度贴吧 com.baidu.tieba://﻿</p>
+<p>百度音乐 baidumusic://</p>
+<p>百度视频 baiduvideoiphone:// 或 bdviphapp://</p>
+<p>百度糯米 bainuo://</p>
+<p>百度魔图 photowonder://</p>
+<p>百度魔拍 wondercamera://</p>
+<p>百度地图 baidumap://</p>
+<p>百度导航 bdNavi://</p>
+<p>视频类</p>
+<p>B站 bilibili://</p>
+<p>优酷 youku://</p>
+<p>PPTV pptv://</p>
+<p>爱奇艺视频 qiyi-iphone://</p>
+<p>暴风影音 com.baofeng.play://</p>
+<p>土豆视频 tudou://</p>
+<p><strong>支付宝</strong></p>
+<p>打开应用 alipay://﻿</p>
+<p>扫一扫 alipayqr://platformapi/startapp?saId=10000007</p>
+<p>乘车码 alipayqr://platformapi/startapp?saId=200011235</p>
+<p>付款码 alipayqr://platformapi/startapp?saId=20000056</p>
+<p>收款码 alipayqr://platformapi/startapp?saId=20000123</p>
+<p>转账 alipayqr://platformapi/startapp?saId=20000116</p>
+<p>提现 alipayqr://platformapi/startapp?saId=20000033</p>
+<p>花呗 alipays://platformapi/startapp?appId=20000199</p>
+<p>借呗 alipays://platformapi/startapp?appId=20000180</p>
+<p>还信用卡 alipays://platformapi/startapp?appId=09999999</p>
+<p>蚂蚁森林 alipay://platformapi/startapp?appId=60000002</p>
+<p>蚂蚁庄园 alipays://platformapi/startapp?appId=66666674</p>
+<p>运动 alipayqr://platformapi/startapp?saId=20000869</p>
+<p>卡劵 alipayqr://platformapi/startapp?saId=88888888</p>
+<p>彩票 alipays://platformapi/startapp?appId=10000011</p>
+<p>生活缴费</p>
+<p>alipays://platformapi/startapp?appId=20000193</p>
+<p>手机充值 alipayqr://platformapi/startapp?saId=10000003</p>
+<p>生活圈</p>
+<p>alipays://platformapi/startapp?appId=20000943</p>
+<p><strong>浏览器合集</strong></p>
+<p>Safari浏览器 x-web-search://﻿</p>
+<p>Alook浏览器 Alook://</p>
+<p>无相浏览器 wuxiang://</p>
+<p>夸克浏览器 quark://</p>
+<p>UC浏览器 ucbrowser://﻿</p>
+<p>QQ浏览器 mttbrowser://﻿</p>
+<p>Chrome浏览器 googlechrome://﻿</p>
+<p><strong>音乐应用</strong></p>
+<p>酷我音乐 com.kuwo.kwmusic.kwmusicForKwsing://﻿</p>
+<p>豆瓣 FM doubanradio://</p>
+<p>酷狗音乐 kugouURL://</p>
+<p>网易云音乐</p>
+<p>打开应用 orpheuswidget://</p>
+<p>私人FM orpheuswidget://radio</p>
+<p>本地音乐 orpheuswidget://download</p>
+<p>听歌识曲 orpheuswidget://recognize</p>
+<p>歌单 orpheuswidget://playlist/id</p>
+<p>用户页orpheuswidget://user/userid</p>
+<p>播放音乐 orpheuswidget://song/songid</p>
+<p>热搜榜 orpheus://playlist/3778678</p>
+<p>飙升榜 orpheus://playlist/19723756</p>
+<p>新歌榜 orpheus://playlist/3779629</p>
+<p><strong>QQ音乐</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">喜欢 qqmusic://qq.com/ui/myTab?p=%7B%22tab%22%3A%22fav%22%7D</span><br><span class="line">本地音乐 qqmusic://today?mid=31&amp;k1=3&amp;k4=0</span><br><span class="line">最近播放 qqmusic://today?mid=31&amp;k1=2&amp;k4=0</span><br><span class="line">个性电台 qqmusic://qq.com/media/playRadio?p=%7B%22radioId%22%3A%2299%22%7D</span><br><span class="line">听歌识曲 qqmusic://qq.com/ui/recognize</span><br><span class="line">继续播放 qqmusic://qq.com/media/resumeSong?p=%7B%7D</span><br></pre></td></tr></table></figure>
+
+<p><strong>虾米音乐</strong></p>
+<p>搜索 xiami://search</p>
+<p>日推 xiami://dailysong?action=play</p>
+<p>本地音乐 xiami://playLocalMusic</p>
+<p>听歌识曲 xiami://musicRecognize</p>
+<p><strong>Alook</strong></p>
+<p>启动App：Alook://<br>搜索或者打开URL： Alook://后面接搜索的内容或要打开的链接<br>新建下载:Alok://download/后面接下载的链接<br>扫描二维码: Alook://QRCode<br>开始搜索: Alook://Search<br>打开图书馆: Alook://Books<br>打开书签:Alok://Bookmarks<br>扫描二维码：Alook://QRCode</p>
+<p><strong>vvebo</strong><br>打开应用 vvebo<br>转发 vvebo://reposts<br>评论 vvebo://comments<br>发微博 vvebo://post</p>
+<p><strong>天猫</strong> tmall://<br><strong>彩云小译</strong> mlink://</p>
+<h1 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h1><p>关于双开软件没有介绍，只简单提一句<code>am start --user 999</code>，可以在终端输入<code>am</code>查看使用方法.</p>
+<h1 id="安卓-intent"><a href="#安卓-intent" class="headerlink" title="安卓 intent"></a>安卓 intent</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br></pre></td><td class="code"><pre><span class="line">// 安卓innet</span><br><span class="line">var intent = new Intent();</span><br><span class="line">//辅助功能</span><br><span class="line">intent.setAction(&quot;android.settings.ACCESSIBILITY_SETTINGS&quot;);</span><br><span class="line">//intent.setAction(&quot;android.settings.ADD_ACCOUNT_SETTINGS&quot;);</span><br><span class="line">//添加账户</span><br><span class="line">//intent.setAction(&quot;android.settings.AIRPLANE_MODE_SETTINGS&quot;);</span><br><span class="line">//系统设置首页</span><br><span class="line">//intent.setAction(&quot;android.settings.APN_SETTINGS&quot;);</span><br><span class="line">//APN设置</span><br><span class="line">//intent.setAction(&quot;android.settings.APPLICATION_SETTINGS&quot;);</span><br><span class="line">//应用管理</span><br><span class="line">//intent.setAction(&quot;android.settings.BATTERY_SAVER_SETTINGS&quot;);</span><br><span class="line">//节电助手</span><br><span class="line">//intent.setAction(&quot;android.settings.BLUETOOTH_SETTINGS&quot;);</span><br><span class="line">//蓝牙</span><br><span class="line">//intent.setAction(&quot;android.settings.CAPTIONING_SETTINGS&quot;);</span><br><span class="line">//字幕</span><br><span class="line">//intent.setAction(&quot;android.settings.CAST_SETTINGS&quot;);</span><br><span class="line">//无线显示</span><br><span class="line">//intent.setAction(&quot;android.settings.DATA_ROAMING_SETTINGS&quot;);</span><br><span class="line">//移动网络</span><br><span class="line">//intent.setAction(&quot;android.settings.DATE_SETTINGS&quot;);</span><br><span class="line">//日期和时间设置</span><br><span class="line">//intent.setAction(&quot;android.settings.DEVICE_INFO_SETTINGS&quot;);</span><br><span class="line">//关于手机</span><br><span class="line">//intent.setAction(&quot;android.settings.DISPLAY_SETTINGS&quot;);</span><br><span class="line">//显示设置</span><br><span class="line">//intent.setAction(&quot;android.settings.DREAM_SETTINGS&quot;);</span><br><span class="line">//互动屏保设置</span><br><span class="line">//intent.setAction(&quot;android.settings.HARD_KEYBOARD_SETTINGS&quot;);</span><br><span class="line">//实体键盘</span><br><span class="line">//intent.setAction(&quot;android.settings.HOME_SETTINGS&quot;);</span><br><span class="line">//应用权限,默认应用设置,特殊权限</span><br><span class="line">//intent.setAction(&quot;android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS&quot;);</span><br><span class="line">//忽略电池优化设置</span><br><span class="line">//intent.setAction(&quot;android.settings.INPUT_METHOD_SETTINGS&quot;);</span><br><span class="line">//可用虚拟键盘设置</span><br><span class="line">//intent.setAction(&quot;android.settings.INPUT_METHOD_SUBTYPE_SETTINGS&quot;);</span><br><span class="line">//安卓键盘语言设置(AOSP)</span><br><span class="line">//intent.setAction(&quot;android.settings.INTERNAL_STORAGE_SETTINGS&quot;);</span><br><span class="line">//内存和存储</span><br><span class="line">//intent.setAction(&quot;android.settings.LOCALE_SETTINGS&quot;);</span><br><span class="line">//语言偏好设置</span><br><span class="line">//intent.setAction(&quot;android.settings.LOCATION_SOURCE_SETTINGS&quot;);</span><br><span class="line">//定位服务设置</span><br><span class="line">//intent.setAction(&quot;android.settings.MANAGE_ALL_APPLICATIONS_SETTINGS&quot;);</span><br><span class="line">//所有应用</span><br><span class="line">//intent.setAction(&quot;android.settings.MANAGE_APPLICATIONS_SETTINGS&quot;);</span><br><span class="line">//应用管理</span><br><span class="line">//intent.setAction(&quot;android.settings.MANAGE_DEFAULT_APPS_SETTINGS&quot;);</span><br><span class="line">//与ACTION_HOME_SETTINGS相同</span><br><span class="line">//intent.setAction(&quot;android.settings.action.MANAGE_OVERLAY_PERMISSION&quot;);</span><br><span class="line">//在其他应用上层显示,悬浮窗</span><br><span class="line">//intent.setAction(&quot;android.settings.MANAGE_UNKNOWN_APP_SOURCES&quot;);</span><br><span class="line">//安装未知应用 安卓8.0</span><br><span class="line">//intent.setAction(&quot;android.settings.action.MANAGE_WRITE_SETTINGS&quot;);</span><br><span class="line">//可修改系统设置 权限</span><br><span class="line">//intent.setAction(&quot;android.settings.MEMORY_CARD_SETTINGS&quot;);</span><br><span class="line">//内存与存储</span><br><span class="line">//intent.setAction(&quot;android.settings.NETWORK_OPERATOR_SETTINGS&quot;);</span><br><span class="line">//可用网络选择</span><br><span class="line">//intent.setAction(&quot;android.settings.NFCSHARING_SETTINGS&quot;);</span><br><span class="line">//NFC设置</span><br><span class="line">//intent.setAction(&quot;android.settings.NFC_SETTINGS&quot;);</span><br><span class="line">//网络中的 更多设置</span><br><span class="line">//intent.setAction(&quot;android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS&quot;);</span><br><span class="line">//通知权限设置</span><br><span class="line">//intent.setAction(&quot;android.settings.NOTIFICATION_POLICY_ACCESS_SETTINGS&quot;);</span><br><span class="line">//勿扰权限设置</span><br><span class="line">//intent.setAction(&quot;android.settings.ACTION_PRINT_SETTINGS&quot;);</span><br><span class="line">//打印服务设置</span><br><span class="line">//intent.setAction(&quot;android.settings.PRIVACY_SETTINGS&quot;);</span><br><span class="line">//备份和重置</span><br><span class="line">//intent.setAction(&quot;android.settings.SECURITY_SETTINGS&quot;);</span><br><span class="line">//安全设置</span><br><span class="line">//intent.setAction(&quot;android.settings.SHOW_REGULATORY_INFO&quot;);</span><br><span class="line">//监管信息</span><br><span class="line">//intent.setAction(&quot;android.settings.SOUND_SETTINGS&quot;);</span><br><span class="line">//声音设置</span><br><span class="line">//intent.setAction(&quot;android.settings.SYNC_SETTINGS&quot;);</span><br><span class="line">//添加账户设置</span><br><span class="line">//intent.setAction(&quot;android.settings.USAGE_ACCESS_SETTINGS&quot;);</span><br><span class="line">//有权查看使用情况的应用</span><br><span class="line">//intent.setAction(&quot;android.settings.USER_DICTIONARY_SETTINGS&quot;);</span><br><span class="line">//个人词典</span><br><span class="line">//intent.setAction(&quot;android.settings.VOICE_INPUT_SETTINGS&quot;);</span><br><span class="line">//辅助应用和语音输入</span><br><span class="line">//intent.setAction(&quot;android.settings.VPN_SETTINGS&quot;);</span><br><span class="line">//VPN设置</span><br><span class="line">//intent.setAction(&quot;android.settings.VR_LISTENER_SETTINGS&quot;);</span><br><span class="line">//VR助手</span><br><span class="line">//intent.setAction(&quot;android.settings.WEBVIEW_SETTINGS&quot;);</span><br><span class="line">//选择webview</span><br><span class="line">//intent.setAction(&quot;android.settings.WIFI_IP_SETTINGS&quot;);</span><br><span class="line">//高级WLAN设置</span><br><span class="line">//intent.setAction(&quot;android.settings.WIFI_SETTINGS&quot;);</span><br><span class="line">//选择WIFI,连接WIFI</span><br><span class="line">app.startActivity(intent);</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/intent/" rel="tag"># intent</a>
+              <a href="/tags/broadcast/" rel="tag"># broadcast</a>
+          </div>
+
+        
+
+
+        
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#app-intent-options"><span class="nav-text">app.intent(options)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Acitivity-%E6%B4%BB%E5%8A%A8"><span class="nav-text">Acitivity(活动)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Activity%E8%BD%AF%E4%BB%B6%E6%8A%93"><span class="nav-text">Activity软件抓</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#xposed-edge-pro%E6%8A%93"><span class="nav-text">xposed edge pro抓</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Intent-%E6%84%8F%E5%9B%BE"><span class="nav-text">Intent(意图)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#xposed-edge-pro%E6%8A%93-1"><span class="nav-text">xposed edge pro抓</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%8C%E9%9D%A2%E5%9B%BE%E6%A0%87%E6%8A%93%E5%8F%96"><span class="nav-text">桌面图标抓取</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%8B%E5%8A%A8%E6%94%B9"><span class="nav-text">手动改</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C"><span class="nav-text">脚本执行</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#xp%E6%A8%A1%E5%9D%97%E6%8A%93%E5%8F%96"><span class="nav-text">xp模块抓取</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#URL-scheme"><span class="nav-text">URL scheme</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5-ios%E6%8D%B7%E5%BE%84%E7%A4%BE%E5%8C%BA%E6%88%96%E8%80%85%E7%99%BE%E5%BA%A6"><span class="nav-text">查-ios捷径社区或者百度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BD%91%E9%A1%B5%E4%B8%AD%E6%89%BE"><span class="nav-text">网页中找</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%BE%E5%8F%AF%E4%BB%A5%E6%89%93%E5%BC%80%E8%BD%AF%E4%BB%B6%E7%9A%84%E7%BD%91%E5%9D%80"><span class="nav-text">找可以打开软件的网址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E5%9D%80%E6%BA%90%E7%A0%81%E4%B8%AD%E6%9F%A5%E6%89%BE"><span class="nav-text">网址源码中查找</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A9%E7%94%A8-%E3%80%90Anywhere-%E5%BF%AB%E6%8D%B7%E6%96%B9%E5%BC%8F%E3%80%91"><span class="nav-text">利用 【Anywhere- 快捷方式】</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1"><span class="nav-text">服务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%BF%E6%92%AD"><span class="nav-text">广播</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Auto-js"><span class="nav-text">Auto.js</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E5%B9%BF%E6%92%AD"><span class="nav-text">发广播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B6%E5%B9%BF%E6%92%AD"><span class="nav-text">收广播</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tasker"><span class="nav-text">Tasker</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E5%B9%BF%E6%92%AD-1"><span class="nav-text">发广播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B6%E5%B9%BF%E6%92%AD-1"><span class="nav-text">收广播</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fv%E6%82%AC%E6%B5%AE%E7%90%83"><span class="nav-text">Fv悬浮球</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E5%B9%BF%E6%92%AD-2"><span class="nav-text">发广播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B6%E5%B9%BF%E6%92%AD-2"><span class="nav-text">收广播</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Xposed-edge-pro"><span class="nav-text">Xposed edge pro</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%91%E5%B9%BF%E6%92%AD-3"><span class="nav-text">发广播</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#URL-Scheme-%E6%95%B4%E7%90%86"><span class="nav-text">URL Scheme 整理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2%E7%B1%BB"><span class="nav-text">搜索类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B7%98%E5%AE%9D"><span class="nav-text">淘宝</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B1%86%E7%93%A3"><span class="nav-text">豆瓣</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BE%8E%E5%9B%A2"><span class="nav-text">美团</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E4%BC%97%E7%82%B9%E8%AF%84"><span class="nav-text">大众点评</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E5%80%BC%E5%BE%97%E4%B9%B0"><span class="nav-text">什么值得买</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9F%A5%E4%B9%8E"><span class="nav-text">知乎</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%93%94%E5%93%A9%E5%93%94%E5%93%A9"><span class="nav-text">哔哩哔哩</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#YouTube"><span class="nav-text">YouTube</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#App-Store"><span class="nav-text">App Store</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B0%E6%B5%AA%E5%BE%AE%E5%8D%9A"><span class="nav-text">新浪微博</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%AC%E4%B8%9C"><span class="nav-text">京东</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%BC%E5%A4%9A%E5%A4%9A"><span class="nav-text">拼多多</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%AB%E7%A0%81%E7%B1%BB"><span class="nav-text">扫码类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BE%AE%E4%BF%A1"><span class="nav-text">微信</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%AF%E4%BB%98%E5%AE%9D"><span class="nav-text">支付宝</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BE%8E%E5%9B%A2-1"><span class="nav-text">美团</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8F%9C%E9%B8%9F"><span class="nav-text">菜鸟</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E7%B1%BB"><span class="nav-text">参数类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE"><span class="nav-text">设置</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E5%8D%8F%E8%AE%AE%E5%A4%B4"><span class="nav-text">其他协议头</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-text">后记</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E5%8D%93-intent"><span class="nav-text">安卓 intent</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="R"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">R</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">R</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
